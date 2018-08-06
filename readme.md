@@ -1,0 +1,1 @@
+在application.properties中配置静态资源访问地址，返回html页面需要在控制器加@Controller标签，而不是@RestController
