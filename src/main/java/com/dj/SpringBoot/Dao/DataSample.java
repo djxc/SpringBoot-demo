@@ -26,7 +26,7 @@ public class DataSample {
          try {
         	Class.forName("org.postgresql.Driver");
 			c = DriverManager
-			    .getConnection("jdbc:postgresql://121.248.96.97:5432/testdb",
+			    .getConnection("jdbc:postgresql://121.248.96.215:5432/testdb",
 			    "postgres", "123321");
 //			selectData(c);	       
 //			alertData(c);
@@ -54,7 +54,7 @@ public class DataSample {
         try {
         	Class.forName("org.postgresql.Driver");
 			c = DriverManager
-			    .getConnection("jdbc:postgresql://121.248.96.97:5432/testdb",
+			    .getConnection("jdbc:postgresql://121.248.96.215:5432/testdb",
 			    "postgres", "123321");
 			System.out.println("connect database successfully");
 		} catch (Exception e) {
@@ -174,8 +174,7 @@ public class DataSample {
 		           double slope = rs.getDouble("mean_slope");
 		           double imper = rs.getDouble("impermeabl");
 		           double width = rs.getDouble("feature_wi");
-		           watersheds.add(new Watershed(id, width, area, slope, imper));
-		           int dj = rs.getInt("dj");
+		           watersheds.add(new Watershed(id, width, area, slope, imper));		        
 //		           System.out.println( "ID = " + id + ";area=" + area + ";imper=" 
 //		           + imper + ";slope=" + slope + ";width=" + width + ";dj=" + dj);
 		          }
@@ -285,6 +284,37 @@ public class DataSample {
 			closeAll();			
 		}     
 		return rainflows;
+	}
+	
+	/**
+	 * 更新经流量，每分钟更新一次，然后在前端更新显示
+	 * @param runoff
+	 */
+	public static void changeRainflow(List<Watershed> runoff) {
+//		for (int i = 0; i < runoff.size(); i++) {
+//	    	double rainflow = runoff.get(i).getRainflow();	
+//	    	int id = runoff.get(i).getId();
+//    		String sql = String.format("UPDATE smdtv_1 SET rainflow=%f"
+//    				+ " where smid=%d;",rainflow, id);
+//    		System.out.println(sql);		    	
+//	    }
+		try {
+			c.setAutoCommit(false);		
+		    stmt = c.createStatement();
+		    for (int i = 0; i < runoff.size(); i++) {
+		    	double rainflow = runoff.get(i).getRainflow();	
+		    	int id = runoff.get(i).getId();
+	    		String sql = String.format("UPDATE smdtv_1 SET rainflow=%f"
+	    				+ " where smid=%d;",rainflow, id);
+	    		stmt.executeUpdate(sql);		    	
+		    }
+		    c.commit();
+		} catch (SQLException e) {
+			System.err.println(e.getClass().getName()+": "+e.getMessage());
+		}finally {			
+			System.out.println("update sucessfully!");
+			closeAll();
+		}
 	}
 	
 }

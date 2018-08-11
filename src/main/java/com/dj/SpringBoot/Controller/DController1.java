@@ -29,4 +29,11 @@ public class DController1 {
 	    }
 	    return map;
 	}
+	
+	@RequestMapping("/changerainflow")
+	public void changeRainflow(int time) {			
+		System.out.println(time*2);
+		GetWaterInfo.changeRainflow(time*2);
+	}
+	
 }

@@ -33,7 +33,7 @@ public class PassHttpFilter implements Filter{
 		HttpServletResponse httpResponse = (HttpServletResponse)response;
         httpResponse.setHeader("Access-Control-Allow-Headers","Origin, X-Requested-With, Content-Type, Accept");
         httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
-        httpResponse.addHeader("Access-Control-Allow-Origin", "http://localhost:8081");
+        httpResponse.addHeader("Access-Control-Allow-Origin", "http://localhost:8080");
         chain.doFilter(request, httpResponse);
 		
 	}

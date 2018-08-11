@@ -6,6 +6,7 @@ public class Watershed {
 	private double area;
 	private double slope;
 	private double impermeate;
+	private double rainflow;
 	
 	public Watershed() {
 		
@@ -52,6 +53,12 @@ public class Watershed {
 	}
 	public void setImpermeate(double impermeate) {
 		this.impermeate = impermeate;
+	}
+	public double getRainflow() {
+		return rainflow;
+	}
+	public void setRainflow(double rainflow) {
+		this.rainflow = rainflow;
 	}	
 	
 }

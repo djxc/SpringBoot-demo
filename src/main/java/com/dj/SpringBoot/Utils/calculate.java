@@ -17,6 +17,10 @@ public class calculate {
 
 	}
 	
+	/**
+	 * 返回单位面积的经流量，第一维是子流域，第二维是时间。
+	 * @return
+	 */
 	public static List<List<Double>> getrunoff(){
 		calculate calculate=new calculate();
 		Map<String, List<Double>> rian=calculate.rain(0.35,2,120);
@@ -33,8 +37,29 @@ public class calculate {
 //				";  瞬时下渗量：" + myinfil.get(i));			
 //	}
 		List<Double> myrainflow=calculate.sumrainflow(sum_rain, myinfil, rainseries, watersheds);	//流域总经流量计算		
-		List<List<Double>> mymean_rainflow=calculate.myrainflow(myrainflow, watersheds);	//单位面积产生的经流量			
+		List<List<Double>> mymean_rainflow=calculate.myrainflow(myrainflow, watersheds, sum_rain);	//单位面积产生的经流量
+//		List<List<Double>> mymean_rainflow=calculate.myrainflow(myrainflow, watersheds);	//单位面积产生的经流量
 		return mymean_rainflow;
+	}
+	
+	/**
+	 * 计算经流系数
+	 * @param myrainflow
+	 * @param watersheds
+	 * @return
+	 */
+	public List<List<Double>> myrainflow(List<Double> myrainflow,List<Watershed> watersheds, List<Double> sum_rain){		
+		List<List<Double>> mean_rainflow=new ArrayList<>();
+		for(int n=0;n < watersheds.size();n++){
+			List<Double> watershed_rainflow=new ArrayList<>();
+			for(int i=0;i < rainTime;i++){
+				double rain = sum_rain.get(i);
+				double meanrainflow=(double)myrainflow.get(120*n+i)/rain;
+				watershed_rainflow.add(meanrainflow);
+			}
+			mean_rainflow.add(watershed_rainflow);
+		}
+		return mean_rainflow;
 	}
 	
 	/**
@@ -46,8 +71,8 @@ public class calculate {
 	public List<List<Double>> myrainflow(List<Double> myrainflow,List<Watershed> watersheds){		
 		List<List<Double>> mean_rainflow=new ArrayList<>();
 		for(int n=0;n < watersheds.size();n++){
-			double area = watersheds.get(n).getArea();
 			List<Double> watershed_rainflow=new ArrayList<>();
+			double area = watersheds.get(n).getArea();
 			for(int i=0;i < rainTime;i++){
 				double meanrainflow=(double)myrainflow.get(120*n+i)/area;
 				watershed_rainflow.add(meanrainflow);

@@ -1,11 +1,20 @@
 package com.dj.SpringBoot.Dao;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.dj.SpringBoot.Domain.Watershed;
 import com.dj.SpringBoot.Utils.calculate;
 
 public class GetWaterInfo {
+	private static List<Watershed> watersheds ;
+	
+	public GetWaterInfo() {
+		DataSample.getConnect();
+		List<Watershed> watersheds = DataSample.getWatershedInfo();
+		DataSample.closeAll();
+		this.watersheds = watersheds; 
+	}
 	public static void main(String[] args) {	
 //		insertData();
 //		getDatabyID();
@@ -19,6 +28,10 @@ public class GetWaterInfo {
 //						"不透水：" + impermeate );
 //			}
 //		}
+		GetWaterInfo waterinfo = new GetWaterInfo();
+		for (int i=0; i< 23; i++) {			
+			changeRainflow(i);
+		}
 	}
 	/**
 	 * 获取流域相关属性
@@ -30,6 +43,7 @@ public class GetWaterInfo {
 		DataSample.closeAll();
 		return watersheds;
 	}
+
 	
 	/**
 	 * 更新数据
@@ -46,5 +60,16 @@ public class GetWaterInfo {
 		List<Double> rainflow = DataSample.selectRainflow(id, 120);		
 		DataSample.closeAll();
 		return rainflow;
+	}
+	
+	public static void changeRainflow(int time) {
+		GetWaterInfo waterinfo = new GetWaterInfo();
+		List<List<Double>> runoff = calculate.getrunoff();
+		for (int i = 0; i < runoff.size(); i++) {
+			watersheds.get(i).setRainflow(runoff.get(i).get(time));
+		}
+		DataSample.getConnect();
+		DataSample.changeRainflow(watersheds);
+		DataSample.closeAll();
 	}
 }
