@@ -7,39 +7,25 @@ import java.util.Map;
 
 import com.dj.SpringBoot.Dao.DataSample;
 import com.dj.SpringBoot.Dao.GetWaterInfo;
+import com.dj.SpringBoot.Domain.Water;
 import com.dj.SpringBoot.Domain.Watershed;
 
 public class calculate {
-	private int rainTime = 120;
 	private double dp = 6.0;
+	private double LWDdp = 4.0;
+	private double XCLD = 8.0;
 	private double imdp = 2.0;
+	private int t;
+	private double r;
+	private int p;
+	
+	public calculate(int raintime, double yfxs, int cxq) {
+		this.t = raintime;
+		this.r = yfxs;
+		this.p = cxq;
+	}
 	public static void main(String[] args) {
 
-	}
-	
-	/**
-	 * 返回单位面积的经流量，第一维是子流域，第二维是时间。
-	 * @return
-	 */
-	public static List<List<Double>> getrunoff(){
-		calculate calculate=new calculate();
-		Map<String, List<Double>> rian=calculate.rain(0.35,2,120);
-		List<Double> rainseries=(List<Double>)rian.get("rain");
-		List<Double> sum_rain=(List<Double>)rian.get("sumrain");
-		List<Double> infil=calculate.Infiltration();	//累计下渗量
-		List<Double> Infiltrate = calculate.Infiltrate();	//瞬时下渗率		
-		List<Double> myinfil = calculate.infil(infil, rainseries);	//瞬时下渗量
-		List<Watershed> watersheds = GetWaterInfo.getWaterInfo();
-//		for (int i = 0; i < 120; i++) {
-//		System.out.println("瞬时降雨量：" + rainseries.get(i) + 
-//				";  瞬时下渗率：" + Infiltrate.get(i) +
-//				";  累计降雨量：" + sum_rain.get(i) + 
-//				";  瞬时下渗量：" + myinfil.get(i));			
-//	}
-		List<Double> myrainflow=calculate.sumrainflow(sum_rain, myinfil, rainseries, watersheds);	//流域总经流量计算		
-		List<List<Double>> mymean_rainflow=calculate.myrainflow(myrainflow, watersheds, sum_rain);	//单位面积产生的经流量
-//		List<List<Double>> mymean_rainflow=calculate.myrainflow(myrainflow, watersheds);	//单位面积产生的经流量
-		return mymean_rainflow;
 	}
 	
 	/**
@@ -48,18 +34,22 @@ public class calculate {
 	 * @param watersheds
 	 * @return
 	 */
-	public List<List<Double>> myrainflow(List<Double> myrainflow,List<Watershed> watersheds, List<Double> sum_rain){		
-		List<List<Double>> mean_rainflow=new ArrayList<>();
+	public List<Water> myrainflow(List<Double> myrainflow,List<Watershed> watersheds, 
+			List<Double> sum_rain){		
+		List<Water> waters = new ArrayList<Water>();
 		for(int n=0;n < watersheds.size();n++){
+			int id = watersheds.get(n).getId();
 			List<Double> watershed_rainflow=new ArrayList<>();
-			for(int i=0;i < rainTime;i++){
+			for(int i=0;i < t;i++){
 				double rain = sum_rain.get(i);
-				double meanrainflow=(double)myrainflow.get(120*n+i)/rain;
+				double meanrainflow=(double)myrainflow.get(t*n+i)/rain;
 				watershed_rainflow.add(meanrainflow);
 			}
-			mean_rainflow.add(watershed_rainflow);
+			Water w = new Water(id, watershed_rainflow);
+			waters.add(w);
+//			watersheds.get(n).setRunoff(watershed_rainflow);
 		}
-		return mean_rainflow;
+		return waters;
 	}
 	
 	/**
@@ -68,25 +58,24 @@ public class calculate {
 	 * @param watersheds
 	 * @return
 	 */
-	public List<List<Double>> myrainflow(List<Double> myrainflow,List<Watershed> watersheds){		
-		List<List<Double>> mean_rainflow=new ArrayList<>();
+	public List<Watershed> myrainflow(List<Double> myrainflow,List<Watershed> watersheds){		
 		for(int n=0;n < watersheds.size();n++){
 			List<Double> watershed_rainflow=new ArrayList<>();
 			double area = watersheds.get(n).getArea();
-			for(int i=0;i < rainTime;i++){
-				double meanrainflow=(double)myrainflow.get(120*n+i)/area;
+			for(int i=0;i < t;i++){
+				double meanrainflow=(double)myrainflow.get(t*n+i)/area;
 				watershed_rainflow.add(meanrainflow);
 			}
-			mean_rainflow.add(watershed_rainflow);
+			watersheds.get(n).setRunoff(watershed_rainflow);
 		}
-		return mean_rainflow;
+		return watersheds;
 	}
 	
 	public List<Double> runoffCoeff(List<Double> myrainflow, List<Double> sum_rain){
 		List<Double> mean_rainflow=new ArrayList<>();
 		for(int n=1;n < 23;n++){
-			for(int i=0;i < rainTime;i++){
-				double meanrainflow=(double)myrainflow.get(120*n+i)/sum_rain.get(120*n+i);
+			for(int i=0;i < t;i++){
+				double meanrainflow=(double)myrainflow.get(t*n+i)/sum_rain.get(t*n+i);
 				mean_rainflow.add(meanrainflow);
 			}
 		}
@@ -105,14 +94,55 @@ public class calculate {
  	public List<Double> sumrainflow(List<Double> sum_rain, List<Double> myinfil, 
 			List<Double> rainseries, List<Watershed> watersheds){
 		List<Double> myarainflow=rainflow(sum_rain, rainseries, watersheds);
-		List<Double> myarainflow01=rainflow01(sum_rain, myinfil,rainseries, watersheds);
+		List<Double> myarainflow01=rainflow01(sum_rain, myinfil,rainseries, watersheds);		
 		List<Double> sumrainflo=new ArrayList<>();
 		for(int i=0;i<watersheds.size();i++){				
 			double imper = watersheds.get(i).getImpermeate()/100;
-			for(int j=0;j<rainTime;j++){				
-				double myrainflow = myarainflow.get(rainTime*i+j);
-				double myrainflow01 = myarainflow01.get(rainTime*i+j);		
+			for(int j=0;j<t;j++){				
+				double myrainflow = myarainflow.get(t*i+j);
+				double myrainflow01 = myarainflow01.get(t*i+j);		
 				double mysumrainflow=imper*myrainflow+(1-imper)*myrainflow01;
+//				System.out.println("不透水经流量：" + imper*myrainflow + "透水经流量：" + (1-imper)*myrainflow01 +
+//						"; 总经流量："+mysumrainflow + "; 瞬时降雨量：" + rainseries.get(j));
+				sumrainflo.add(mysumrainflow);
+			}			
+//			System.out.println("*****************************");
+		}
+		return sumrainflo;
+	}
+ 	
+ 	/**
+ 	 * 计算海绵体布设后的经流总量
+ 	 * @param sum_rain
+ 	 * @param myinfil
+ 	 * @param rainseries
+ 	 * @param watersheds
+ 	 * @return
+ 	 */
+ 	public List<Double> sumLIDrainflow(List<Double> sum_rain, List<Double> myinfil, 
+			List<Double> rainseries, List<Watershed> watersheds){
+		List<Double> myarainflow=rainflow(sum_rain, rainseries, watersheds);
+		List<Double> myarainflow01=rainflow01(sum_rain, myinfil,rainseries, watersheds);
+		List<Double> myarainflow02 = LWD(sum_rain, myinfil,rainseries, watersheds);
+		List<Double> myarainflow03 = XCLD(sum_rain, myinfil,rainseries, watersheds);
+
+		List<Double> sumrainflo=new ArrayList<>();
+		for(int i=0;i<watersheds.size();i++){		
+			double area = watersheds.get(i).getArea();
+			double imper = watersheds.get(i).getImpermeate()/100;
+			double lwdi = watersheds.get(i).getLwd()/area;
+			double xcli = watersheds.get(i).getXcl()/area;
+			double yssdi = watersheds.get(i).getYssd()/area;
+			double tspzi = watersheds.get(i).getTspz()/area;
+			double xsci = watersheds.get(i).getXsc()/area;
+			for(int j=0;j<t;j++){			
+				int index = t*i+j;
+				double myrainflow = myarainflow.get(index);
+				double myrainflow01 = myarainflow01.get(index);		
+				double myrainflow02 = myarainflow02.get(index);		
+				double myrainflow03 = myarainflow03.get(index);		
+ 				double mysumrainflow=(imper - lwdi - tspzi)*myrainflow+(1 - imper)*myrainflow01 + 
+ 						(lwdi + tspzi) * myrainflow02 + (xcli + yssdi + xsci) * myrainflow03;
 //				System.out.println("不透水经流量：" + imper*myrainflow + "透水经流量：" + (1-imper)*myrainflow01 +
 //						"; 总经流量："+mysumrainflow + "; 瞬时降雨量：" + rainseries.get(j));
 				sumrainflo.add(mysumrainflow);
@@ -138,7 +168,7 @@ public class calculate {
 			double _slope = watersheds.get(i).getSlope();
 			double Q;
 			double rainDeep=0;	//初始水深，水深大于洼地蓄水量的时候开始计算经流量
-			for(int j=0;j<rainTime;j++){
+			for(int j=0;j<t;j++){
 				 rainDeep=rainDeep+(double)rainseries.get(j);				
 	            if (rainDeep<imdp){
 	                Q=0;
@@ -169,7 +199,7 @@ public class calculate {
 			double _slope = watersheds.get(i).getSlope();
 			double rainDeep=0;	//水深
 			double sum_Q=0;	// 经流量和		
-			for(int j=0;j<rainTime;j++){				
+			for(int j=0;j<t;j++){				
 				double Q;	//			
 				rainDeep=rainDeep+(double)rainseries.get(j)-(double)infiltration.get(j);
 				if(rainDeep<0){rainDeep=0;}
@@ -186,6 +216,70 @@ public class calculate {
 		return arainflow;         
 	}
 	
+	/**
+	 * 计算绿色屋顶产流量
+	 * @param sum_rain
+	 * @param infiltration
+	 * @param rainseries
+	 * @param watersheds
+	 * @return
+	 */
+	public List<Double> LWD(List<Double> sum_rain, List<Double> infiltration, 
+			List<Double> rainseries, List<Watershed> watersheds) {
+		List<Double> arainflow=new ArrayList<>();		
+		for(int i=0;i < watersheds.size();i++){		
+			double _width= watersheds.get(i).getWidth();
+			double _slope = watersheds.get(i).getSlope();
+			double rainDeep=0;	//水深
+			double sum_Q=0;	// 经流量和		
+			for(int j=0;j<t;j++){				
+				double Q;	//			
+				rainDeep=rainDeep+(double)rainseries.get(j)-(double)infiltration.get(j);
+				if(rainDeep<0){rainDeep=0;}
+	            if (rainDeep<LWDdp){
+	                Q=0;
+	            }else{	            	 
+	                Q=_width*(float)(1.49/0.2)*(float)Math.pow((rainDeep-LWDdp),1.6667)*(float)Math.pow(_slope/2,0.5);
+	                rainDeep=6.0;
+	            }
+	            sum_Q=sum_Q+Q;
+	            arainflow.add(Q/100);	 
+			 }
+		}				      
+		return arainflow;   
+	}
+	/**
+	 * 下沉式绿地
+	 * @param sum_rain
+	 * @param infiltration
+	 * @param rainseries
+	 * @param watersheds
+	 * @return
+	 */
+	public List<Double> XCLD(List<Double> sum_rain, List<Double> infiltration, 
+			List<Double> rainseries, List<Watershed> watersheds) {
+		List<Double> arainflow=new ArrayList<>();		
+		for(int i=0;i < watersheds.size();i++){		
+			double _width= watersheds.get(i).getWidth();
+			double _slope = watersheds.get(i).getSlope();
+			double rainDeep=0;	//水深
+			double sum_Q=0;	// 经流量和		
+			for(int j=0;j<t;j++){				
+				double Q;	//			
+				rainDeep=rainDeep+(double)rainseries.get(j)-(double)infiltration.get(j);
+				if(rainDeep<0){rainDeep=0;}
+	            if (rainDeep<XCLD){
+	                Q=0;
+	            }else{	            	 
+	                Q=_width*(float)(1.49/0.2)*(float)Math.pow((rainDeep-XCLD),1.6667)*(float)Math.pow(_slope,0.5);
+	                rainDeep=6.0;
+	            }
+	            sum_Q=sum_Q+Q;
+	            arainflow.add(Q/100);	 
+			 }
+		}				      
+		return arainflow;   
+	}
 	
 	/**
 	 * 计算降雨，返回每时刻降雨序列，以及每时刻降雨总量序列
@@ -195,7 +289,7 @@ public class calculate {
 	 * @return
 	 */
 	
-	public Map<String, List<Double>> rain(double r,int p,int t){					
+	public Map<String, List<Double>> rain(){					
 		int a=2094;
 		double b=8.875;
 		double n=0.633;
@@ -238,7 +332,7 @@ public class calculate {
 		double Fb=50.0/60.0;		//初始入渗率
 		double Fs=6.6/60.0;		//稳定入渗率
 		double a=2.1/60.0;		//常数
-		for(int i=0;i<rainTime;i++){
+		for(int i=0;i<t;i++){
 			double f = Fs * i + ((Fb - Fs) * (1-Math.exp(-(a)* i))) / a;			
 			infiltration.add(f);
 		}	
@@ -253,7 +347,7 @@ public class calculate {
 		double Fb=50.0/60.0;		//初始入渗率
 		double Fs=6.6/60.0;		//稳定入渗率
 		double a=2.1/60.0;		//常数
-		for(int i=0;i<rainTime + 150;i++){
+		for(int i=0;i<t + 150;i++){
 			double f = Fs + (Fb - Fs) * Math.exp(-a* i);			
 			infiltration.add(f);
 		}	
@@ -270,7 +364,7 @@ public class calculate {
 	public List<Double> infil(List<Double> infil, List<Double> rainseries){
 		List<Double> myinfil=new ArrayList<>();
 		myinfil.add(0.00);
-		for(int i=1;i<120;i++){
+		for(int i=1;i<t;i++){
 			if(((double)infil.get(i)-(double)infil.get(i-1))<(double)rainseries.get(i)){
 				myinfil.add((double)infil.get(i)-(double)infil.get(i-1));
 			}else {

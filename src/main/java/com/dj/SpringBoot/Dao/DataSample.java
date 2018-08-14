@@ -6,8 +6,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.dj.SpringBoot.Domain.Water;
 import com.dj.SpringBoot.Domain.Watershed;
 
 public class DataSample {
@@ -195,6 +198,48 @@ public class DataSample {
 	}
 	
 	/**
+	 * 获取海绵体布设后的子流域的信息
+	 * @return
+	 */
+	public static List<Watershed> getLIDWatershedInfo() {
+        ResultSet rs = null;        
+        List<Watershed> watersheds = new ArrayList<Watershed>();
+		try {
+		    stmt = c.createStatement();
+			rs = stmt.executeQuery( "SELECT * FROM smdtv_5;" );
+			while ( rs.next() ) {
+		           int id = rs.getInt("smid");
+		           double area = rs.getDouble("area");
+		           double slope = rs.getDouble("mean_slope");
+		           double imper = rs.getDouble("impermeabl");
+		           double width = rs.getDouble("feature_wi");
+		           double lwd = rs.getDouble("lwd");
+		           double xcl = rs.getDouble("xcl");
+		           double yssd = rs.getDouble("yssd");
+		           double tspz = rs.getDouble("tspz");
+		           double xsc = rs.getDouble("xsc");
+		           watersheds.add(new Watershed(id, width, area, slope, imper,
+		        		   lwd, xcl, yssd, tspz, xsc));		        
+//		           System.out.println( "ID = " + id + ";area=" + area + ";imper=" 
+//		           + imper + ";slope=" + slope + ";width=" + width + ";dj=" + dj);
+		          }
+		     rs.close();
+		} catch (SQLException e) {
+			System.err.println(e.getClass().getName()+": "+e.getMessage());
+			return null;
+		}finally {
+			if (rs!=null) {
+				try {
+					rs.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return watersheds;
+	}
+	
+	/**
 	 * 初始化表创建320行，以后只更新表就可以
 	 * @param mean_rainflow
 	 */
@@ -219,15 +264,16 @@ public class DataSample {
 	 * 填充经流量表数据
 	 * @param mean_rainflow
 	 */
-	public static void alertRainflow(List<List<Double>> mean_rainflow) {
+	public static void alertRainflow(List<Water> waters) {
 		try {
 			c.setAutoCommit(false);		
 		    stmt = c.createStatement();
-		    for (int i = 0; i < mean_rainflow.size(); i++) {
-		    	List<Double> rainflow = mean_rainflow.get(i);
+		    for (int i = 0; i < waters.size(); i++) {
+		    	int id = waters.get(i).getId();
+		    	List<Double> rainflow = waters.get(i).getRunoff();
 		    	for (int j = 0; j < rainflow.size(); j++) {		    		
 		    		String sql = String.format("UPDATE watershed%d SET rainflow=%f"
-		    				+ " where id=%d;",i+1,rainflow.get(j), j);
+		    				+ " where id=%d;", id, rainflow.get(j), j);
 		    		stmt.executeUpdate(sql);
 		    	}
 		    	c.commit();
@@ -244,17 +290,19 @@ public class DataSample {
 	 * 填充设置海绵体后经流量表数据
 	 * @param mean_rainflow
 	 */
-	public void alertLIDRainflow(List<List<Double>> mean_rainflow) {
+	public static void alertLIDRainflow(List<Water> waters) {
 		try {
 			c.setAutoCommit(false);		
 		    stmt = c.createStatement();
-		    for (int i = 0; i < mean_rainflow.size(); i++) {
-		    	List<Double> rainflow = mean_rainflow.get(i);
+		    for (int i = 0; i < waters.size(); i++) {
+		    	int id = waters.get(i).getId();
+		    	List<Double> rainflow = waters.get(i).getRunoff();
 		    	for (int j = 0; j < rainflow.size(); j++) {		    		
 		    		String sql = String.format("UPDATE watershed%d SET rainflow_lid=%f"
-		    				+ " where id=%d;",i+1,rainflow.get(j), j);
+		    				+ " where id=%d;", id,rainflow.get(j), j);
 		    		stmt.executeUpdate(sql);
 		    	}
+		    	c.commit();
 		    }
 		} catch (SQLException e) {
 			System.err.println(e.getClass().getName()+": "+e.getMessage());
@@ -264,16 +312,20 @@ public class DataSample {
 	}
 	
 	
-	public static List<Double> selectRainflow(int id, int num) {
+	public static  Map<String, List<Double>> selectRainflow(int id, int num) {
         ResultSet rs;
         List<Double> rainflows = new ArrayList<>();
+        List<Double> lidrainflows = new ArrayList<>();
+        Map<String, List<Double>> map = new HashMap<String, List<Double>>();
 		try {
 		    stmt = c.createStatement();
 		    String sql = String.format("SELECT * FROM watershed%d WHERE id<%d;",id, num);
 			rs = stmt.executeQuery(sql);
 			while ( rs.next() ) {		        
 		           double rainflow = rs.getDouble("rainflow");
+		           double lidrainflow = rs.getDouble("rainflow_lid");
 		           rainflows.add(rainflow);
+		           lidrainflows.add(lidrainflow);
 			} 
 			rs.close();
 		}catch (SQLException e) {
@@ -281,38 +333,33 @@ public class DataSample {
 			System.err.println(e.getClass().getName()+": "+e.getMessage());
 	        System.exit(0);
 		}   finally {
+			map.put("rainflow", rainflows);
+			map.put("lidrainflow", lidrainflows);
 			closeAll();			
 		}     
-		return rainflows;
+		return map;
 	}
 	
 	/**
 	 * 更新经流量，每分钟更新一次，然后在前端更新显示
 	 * @param runoff
 	 */
-	public static void changeRainflow(List<Watershed> runoff) {
-//		for (int i = 0; i < runoff.size(); i++) {
-//	    	double rainflow = runoff.get(i).getRainflow();	
-//	    	int id = runoff.get(i).getId();
-//    		String sql = String.format("UPDATE smdtv_1 SET rainflow=%f"
-//    				+ " where smid=%d;",rainflow, id);
-//    		System.out.println(sql);		    	
-//	    }
+	public static void changeRainflow(List<Water> waters, int time) {
 		try {
 			c.setAutoCommit(false);		
 		    stmt = c.createStatement();
-		    for (int i = 0; i < runoff.size(); i++) {
-		    	double rainflow = runoff.get(i).getRainflow();	
-		    	int id = runoff.get(i).getId();
+		    for (int i = 0; i < waters.size(); i++) {
+		    	double rainflow = waters.get(i).getRunoff().get(time);	
+		    	int id = waters.get(i).getId();
 	    		String sql = String.format("UPDATE smdtv_1 SET rainflow=%f"
 	    				+ " where smid=%d;",rainflow, id);
 	    		stmt.executeUpdate(sql);		    	
 		    }
 		    c.commit();
+		    System.out.println("update sucessfully!");
 		} catch (SQLException e) {
-			System.err.println(e.getClass().getName()+": "+e.getMessage());
+			System.out.println(e.getClass().getName()+": "+e.getMessage());
 		}finally {			
-			System.out.println("update sucessfully!");
 			closeAll();
 		}
 	}

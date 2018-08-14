@@ -1,12 +1,22 @@
 package com.dj.SpringBoot.Domain;
 
-public class Watershed {
+import java.io.Serializable;
+import java.util.List;
+
+public class Watershed implements Serializable {
+	private static final long serialVersionUID = 6392376146163510146L;
 	private int id;
 	private double width;
 	private double area;
 	private double slope;
 	private double impermeate;
 	private double rainflow;
+	private double lwd;
+	private double xcl;
+	private double yssd;
+	private double tspz;
+	private double xsc;
+	private List<Double> runoff;
 	
 	public Watershed() {
 		
@@ -17,6 +27,20 @@ public class Watershed {
 		this.area = area;
 		this.slope = slope;
 		this.impermeate = impermeate;
+	}
+	
+	public Watershed(int id, double width, double area, double slope, double impermeate,
+			double lwd, double xcl, double yssd, double tspz, double xsc) {
+		this.id = id;
+		this.width = width;
+		this.area = area;
+		this.slope = slope;
+		this.impermeate = impermeate;
+		this.lwd = lwd;
+		this.xcl = xcl;
+		this.yssd = yssd;
+		this.tspz = tspz;
+		this.xsc = xsc;
 	}
 
 	public double getWidth() {
@@ -59,6 +83,43 @@ public class Watershed {
 	}
 	public void setRainflow(double rainflow) {
 		this.rainflow = rainflow;
+	}
+	public double getLwd() {
+		return lwd;
+	}
+	public void setLwd(double lwd) {
+		this.lwd = lwd;
+	}
+	public double getXcl() {
+		return xcl;
+	}
+	public void setXcl(double xcl) {
+		this.xcl = xcl;
+	}
+	public double getYssd() {
+		return yssd;
+	}
+	public void setYssd(double yssd) {
+		this.yssd = yssd;
+	}
+	public double getTspz() {
+		return tspz;
+	}
+	public void setTspz(double tspz) {
+		this.tspz = tspz;
+	}
+	public double getXsc() {
+		return xsc;
+	}
+	public void setXsc(double xsc) {
+		this.xsc = xsc;
+	}
+	public List<Double> getRunoff() {
+		return runoff;
+	}
+	public void setRunoff(List<Double> runoff) {
+		this.runoff = runoff;
 	}	
+	
 	
 }
