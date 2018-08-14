@@ -234,7 +234,7 @@ public class calculate {
 			double sum_Q=0;	// 经流量和		
 			for(int j=0;j<t;j++){				
 				double Q;	//			
-				rainDeep=rainDeep+(double)rainseries.get(j)-(double)infiltration.get(j);
+				rainDeep=rainDeep+(double)rainseries.get(j)-(double)infiltration.get(j) * 1.2;
 				if(rainDeep<0){rainDeep=0;}
 	            if (rainDeep<LWDdp){
 	                Q=0;
@@ -266,7 +266,7 @@ public class calculate {
 			double sum_Q=0;	// 经流量和		
 			for(int j=0;j<t;j++){				
 				double Q;	//			
-				rainDeep=rainDeep+(double)rainseries.get(j)-(double)infiltration.get(j);
+				rainDeep=rainDeep+(double)rainseries.get(j)-(double)infiltration.get(j) * 1.4;
 				if(rainDeep<0){rainDeep=0;}
 	            if (rainDeep<XCLD){
 	                Q=0;

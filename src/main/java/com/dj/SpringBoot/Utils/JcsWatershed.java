@@ -3,6 +3,7 @@ package com.dj.SpringBoot.Utils;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.io.Serializable;
 import org.apache.commons.jcs.JCS;
 import org.apache.commons.jcs.access.CacheAccess;
 import org.apache.commons.jcs.access.exception.CacheException;
@@ -14,8 +15,8 @@ public class JcsWatershed {
 	 
 	public static void main(String[] args) {
 		JcsWatershed jcswater = new JcsWatershed();
-//		jcswater.testCache(22);
-		jcswater.getRainflows(22);
+		jcswater.testCache(22);
+//		jcswater.getRainflows(22);
 	}
     public JcsWatershed() 
     {
@@ -33,13 +34,13 @@ public class JcsWatershed {
      * 将数据放入缓存文件中，以map形式,子流域的id为key，water为value
      * @param city
      */
-    public void putInCache(List<Water> water) 
+    public void putInCache(List<Water> waters) 
     {
-    	for (int i = 0; i< water.size(); i++) {
-    		int id = water.get(i).id;
+    	for (int i = 0; i< waters.size(); i++) {
+    		int id = waters.get(i).id;
     		try 
     		{
-    			cache.put(i, water.get(i));
+    			cache.put(id, waters.get(i));
     			System.out.println("put watershed id =" + id);
     		}
     		catch ( CacheException e ) 
@@ -61,7 +62,7 @@ public class JcsWatershed {
     		try 
     		{
     			cache.put(i+100, water.get(i));
-    			System.out.println("put watershed id =" + id);
+    			System.out.println("put watershed id =" + id+100);
     		}
     		catch ( CacheException e ) 
     		{
@@ -87,6 +88,16 @@ public class JcsWatershed {
      */
     public List<Water> testCache(int num) 
     {
+    	List<Double> dj = new ArrayList<Double>();
+    	for (int j=0; j<10; j++) {
+    		dj.add(j*0.2);
+    	}
+    	List<Water> waters = new ArrayList<Water>();
+    	for (int j=0; j<10; j++) {
+    		Water w = new Water(j, dj);
+    		waters.add(w);
+    	}
+    	putInCache(waters);
     	List<Water> watersheds = new ArrayList<Water>();
     	for (int i = 1; i < 20; i++) {	    		
     		Water retrievedCity1 = retrieveFromCache(i);
@@ -113,11 +124,11 @@ public class JcsWatershed {
     		Water w = retrieveFromCache(i);
     		if ( w == null ) 
             {
-                System.out.println("can not find");
+                System.out.println("can not find id=" + i);
             }else {            	
-            	System.out.println("find it!*********************");
             	rainflows.add(w);
             }
+//    		System.out.println("find it!*********************");
     	}
     	return rainflows;
     }
@@ -125,8 +136,13 @@ public class JcsWatershed {
     public List<Water> getLIDRainflows(int size){
     	List<Water> rainflows = new ArrayList<Water>();
     	for (int i = 1; i <= size; i++) {
-    		Water w = retrieveFromCache(i+100);    		
-    		rainflows.add(w);
+    		Water w = retrieveFromCache(i+100);   
+    		if ( w == null ) 
+            {
+                System.out.println("can not find id=" + i+100);
+            }else {            	
+            	rainflows.add(w);
+            }
     	}
     	return rainflows;
     }

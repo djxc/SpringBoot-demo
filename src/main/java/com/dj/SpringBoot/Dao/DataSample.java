@@ -18,7 +18,8 @@ public class DataSample {
 	private static Statement stmt;
 
 	public static void main(String[] args) {
-		ConnectPG();
+		getConnect();
+		getLIDWatershedInfo();
 	}
 	
 	/**
@@ -29,11 +30,12 @@ public class DataSample {
          try {
         	Class.forName("org.postgresql.Driver");
 			c = DriverManager
-			    .getConnection("jdbc:postgresql://121.248.96.215:5432/testdb",
-			    "postgres", "123321");
+			    .getConnection("jdbc:postgresql://116.196.88.174:5432/Supermap",
+			    "postgres", "123dj321");
 //			selectData(c);	       
 //			alertData(c);
 //			createTable(c);
+			insertRainflow();
 			System.out.println("Opened database successfully");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -57,9 +59,9 @@ public class DataSample {
         try {
         	Class.forName("org.postgresql.Driver");
 			c = DriverManager
-			    .getConnection("jdbc:postgresql://121.248.96.215:5432/testdb",
-			    "postgres", "123321");
-			System.out.println("connect database successfully");
+			    .getConnection("jdbc:postgresql://116.196.88.174:5432/Supermap",
+			    "postgres", "123dj321");
+//			System.out.println("connect database successfully");
 		} catch (Exception e) {
 			System.out.println("connect database failed");
 		} 
@@ -113,16 +115,16 @@ public class DataSample {
         Statement stmt;
 		try {
 		    stmt = c.createStatement();
-			rs = stmt.executeQuery( "SELECT * FROM smdtv_1;" );
+			rs = stmt.executeQuery( "SELECT * FROM smdtv_4;" );
 			while ( rs.next() ) {
 		           int id = rs.getInt("smid");
 		           double area = rs.getDouble("area");
 		           double slope = rs.getDouble("mean_slope");
 		           double imper = rs.getDouble("impermeabl");
 		           double width = rs.getDouble("feature_wi");
-		           int dj = rs.getInt("dj");
+//		           int dj = rs.getInt("dj");
 		           System.out.println( "ID = " + id + ";area=" + area + ";imper=" 
-		           + imper + ";slope=" + slope + ";width=" + width + ";dj=" + dj);
+		           + imper + ";slope=" + slope + ";width=" + width);
 		          }
 		     rs.close();
 		     stmt.close();
@@ -170,7 +172,7 @@ public class DataSample {
         List<Watershed> watersheds = new ArrayList<Watershed>();
 		try {
 		    stmt = c.createStatement();
-			rs = stmt.executeQuery( "SELECT * FROM smdtv_1;" );
+			rs = stmt.executeQuery( "SELECT * FROM smdtv_4;" );
 			while ( rs.next() ) {
 		           int id = rs.getInt("smid");
 		           double area = rs.getDouble("area");
@@ -179,7 +181,7 @@ public class DataSample {
 		           double width = rs.getDouble("feature_wi");
 		           watersheds.add(new Watershed(id, width, area, slope, imper));		        
 //		           System.out.println( "ID = " + id + ";area=" + area + ";imper=" 
-//		           + imper + ";slope=" + slope + ";width=" + width + ";dj=" + dj);
+//		           + imper + ";slope=" + slope + ";width=" + width);
 		          }
 		     rs.close();
 		} catch (SQLException e) {
@@ -206,7 +208,7 @@ public class DataSample {
         List<Watershed> watersheds = new ArrayList<Watershed>();
 		try {
 		    stmt = c.createStatement();
-			rs = stmt.executeQuery( "SELECT * FROM smdtv_5;" );
+			rs = stmt.executeQuery( "SELECT * FROM smdtv_4;" );
 			while ( rs.next() ) {
 		           int id = rs.getInt("smid");
 		           double area = rs.getDouble("area");
@@ -221,7 +223,7 @@ public class DataSample {
 		           watersheds.add(new Watershed(id, width, area, slope, imper,
 		        		   lwd, xcl, yssd, tspz, xsc));		        
 //		           System.out.println( "ID = " + id + ";area=" + area + ";imper=" 
-//		           + imper + ";slope=" + slope + ";width=" + width + ";dj=" + dj);
+//		           + imper + ";slope=" + slope + ";width=" + width);
 		          }
 		     rs.close();
 		} catch (SQLException e) {
@@ -243,7 +245,7 @@ public class DataSample {
 	 * 初始化表创建320行，以后只更新表就可以
 	 * @param mean_rainflow
 	 */
-	public static void insertRainflow(List<List<Double>> mean_rainflow) {    
+	public static void insertRainflow() {    
 		try {
 		    stmt = c.createStatement();
 		    for (int i = 0; i < 22; i++) {		    
@@ -351,7 +353,7 @@ public class DataSample {
 		    for (int i = 0; i < waters.size(); i++) {
 		    	double rainflow = waters.get(i).getRunoff().get(time);	
 		    	int id = waters.get(i).getId();
-	    		String sql = String.format("UPDATE smdtv_1 SET rainflow=%f"
+	    		String sql = String.format("UPDATE smdtv_4 SET rainflow=%f"
 	    				+ " where smid=%d;",rainflow, id);
 	    		stmt.executeUpdate(sql);		    	
 		    }
