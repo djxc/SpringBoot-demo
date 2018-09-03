@@ -2,7 +2,6 @@ package com.dj.SpringBoot.Dao;
 
 import java.util.List;
 import java.util.Map;
-
 import com.dj.SpringBoot.Domain.Water;
 import com.dj.SpringBoot.Domain.Watershed;
 import com.dj.SpringBoot.Utils.JcsWatershed;
@@ -42,9 +41,14 @@ public class GetWaterInfo {
 	 * @return
 	 */
 	public static List<Watershed> getWaterInfo(){
-		DataSample.getConnect();
-		List<Watershed> watersheds = DataSample.getWatershedInfo();
-		DataSample.closeAll();
+//		DataSample.getConnect();
+//		List<Watershed> watersheds = DataSample.getWatershedInfo();
+//		DataSample.closeAll();
+//		return watersheds;
+		
+		DataSample2.getConnect();
+		List<Watershed> watersheds = DataSample2.getWatershedInfo();
+		DataSample2.closeAll();
 		return watersheds;
 	}
 
@@ -53,9 +57,14 @@ public class GetWaterInfo {
 	 * @return
 	 */
 	public static List<Watershed> getLIDWaterInfo(){
-		DataSample.getConnect();
-		List<Watershed> watersheds = DataSample.getLIDWatershedInfo();
-		DataSample.closeAll();
+//		DataSample.getConnect();
+//		List<Watershed> watersheds = DataSample.getLIDWatershedInfo();
+//		DataSample.closeAll();
+//		return watersheds;
+		
+		DataSample2.getConnect();
+		List<Watershed> watersheds = DataSample2.getLIDWatershedInfo();
+		DataSample2.closeAll();
 		return watersheds;
 	}
 	
@@ -74,14 +83,15 @@ public class GetWaterInfo {
 		List<Watershed> watersheds = GetWaterInfo.getWaterInfo();
 		List<Double> myrainflow=cal.sumrainflow(sum_rain, myinfil, rainseries, watersheds);	//流域总经流量计算	
 		List<Water> runoffwater =cal.myrainflow(myrainflow, watersheds, sum_rain);	//单位面积产生的经流量		
-		
-		JcsWatershed jcswater = new JcsWatershed();
-		jcswater.putInCache(runoffwater);
-		
-		DataSample.getConnect();
-		DataSample.alertRainflow(runoffwater);
-		DataSample.closeAll();
+
+//		JcsWatershed jcswater = new JcsWatershed();
+//		jcswater.putInCache(runoffwater);
+		//将经流量存入数据库
+		DataSample2.getConnect();
+		DataSample2.alertRainflow(runoffwater, "rainflow");
+		DataSample2.closeAll();
 	}
+	
 	/**
 	 * 更新海绵体布设后的经流量数据
 	 * 返回单位面积的经流量，第一维是子流域，第二维是时间。
@@ -97,12 +107,12 @@ public class GetWaterInfo {
 		List<Double> myrainflow=cal.sumLIDrainflow(sum_rain, myinfil, rainseries, watersheds);	//流域总经流量计算	
 		List<Water> runoff=cal.myrainflow(myrainflow, watersheds, sum_rain);	//单位面积产生的经流量
 		
-		JcsWatershed jcswater = new JcsWatershed();
-		jcswater.putLIDInCache(runoff);
+//		JcsWatershed jcswater = new JcsWatershed();
+//		jcswater.putLIDInCache(runoff);
 		
-		DataSample.getConnect();
-		DataSample.alertLIDRainflow(runoff);
-		DataSample.closeAll();
+		DataSample2.getConnect();
+		DataSample2.alertRainflow(runoff, "rainflow_lid");
+		DataSample2.closeAll();
 	}
 	
 	/**
@@ -110,10 +120,10 @@ public class GetWaterInfo {
 	 * @param id
 	 * @return
 	 */
-	public static  Map<String, List<Double>>  getDatabyID(int id) {
-		DataSample.getConnect();
-		Map<String, List<Double>> rainflow = DataSample.selectRainflow(id, 120);
-		DataSample.closeAll();
+	public static  Map<String, List<Double>>  getDatabyID(int id, int time) {
+		DataSample2.getConnect();
+		Map<String, List<Double>> rainflow = DataSample2.selectRainflow(id, time);
+		DataSample2.closeAll();
 		return rainflow;
 	}
 	
@@ -123,11 +133,19 @@ public class GetWaterInfo {
 	 * @param time
 	 */
 	public static void changeRainflow(int time) {
-		JcsWatershed jcswater = new JcsWatershed();
-		List<Water> runoff = jcswater.getRainflows(22);
-		DataSample.getConnect();
-		DataSample.changeRainflow(runoff, time);
-		DataSample.closeAll();
+//		JcsWatershed jcswater = new JcsWatershed();
+//		List<Water> runoff = jcswater.getRainflows(22);
+		DataSample2.getConnect();
+		List<Water> runoff =  DataSample2.selectRainflow1(time, 22, "rainflow");		
+		DataSample2.changeRainflow(runoff);
+		DataSample2.closeAll();
+	}
+	public static void changeLIDRainflow(int time) {
+		DataSample2.getConnect();
+		List<Water> runoff =  DataSample2.selectRainflow1(time, 22, "rainflow_lid");
+		System.out.println(runoff);
+		DataSample2.changeRainflow(runoff);
+		DataSample2.closeAll();
 	}
 	
 }

@@ -11,8 +11,8 @@ import com.dj.SpringBoot.Domain.Water;
 import com.dj.SpringBoot.Domain.Watershed;
 
 public class calculate {
-	private double dp = 6.0;
-	private double LWDdp = 4.0;
+	private double dp = 5.0;
+	private double LWDdp = 7.0;
 	private double XCLD = 8.0;
 	private double imdp = 2.0;
 	private int t;
@@ -25,7 +25,6 @@ public class calculate {
 		this.p = cxq;
 	}
 	public static void main(String[] args) {
-
 	}
 	
 	/**
@@ -141,10 +140,13 @@ public class calculate {
 				double myrainflow01 = myarainflow01.get(index);		
 				double myrainflow02 = myarainflow02.get(index);		
 				double myrainflow03 = myarainflow03.get(index);		
- 				double mysumrainflow=(imper - lwdi - tspzi)*myrainflow+(1 - imper)*myrainflow01 + 
+ 				double mysumrainflow=(imper - lwdi - tspzi)*myrainflow + 
+ 						(1 - lwdi - tspzi -imper - xcli - yssdi - xsci)*myrainflow01 + 
  						(lwdi + tspzi) * myrainflow02 + (xcli + yssdi + xsci) * myrainflow03;
-//				System.out.println("不透水经流量：" + imper*myrainflow + "透水经流量：" + (1-imper)*myrainflow01 +
-//						"; 总经流量："+mysumrainflow + "; 瞬时降雨量：" + rainseries.get(j));
+//				System.out.println("不透水经流量：" + (imper - lwdi - tspzi)*myrainflow +
+//						"透水经流量：" + (1-imper)*myrainflow01 +
+//						"; 海绵体1："+(lwdi + tspzi) * myrainflow02 +
+//						"; 海绵体2：" + (xcli + yssdi + xsci) * myrainflow03);
 				sumrainflo.add(mysumrainflow);
 			}			
 //			System.out.println("*****************************");
@@ -234,7 +236,7 @@ public class calculate {
 			double sum_Q=0;	// 经流量和		
 			for(int j=0;j<t;j++){				
 				double Q;	//			
-				rainDeep=rainDeep+(double)rainseries.get(j)-(double)infiltration.get(j) * 1.2;
+				rainDeep=rainDeep+(double)rainseries.get(j)-(double)infiltration.get(j) * 1.5;
 				if(rainDeep<0){rainDeep=0;}
 	            if (rainDeep<LWDdp){
 	                Q=0;
@@ -266,7 +268,7 @@ public class calculate {
 			double sum_Q=0;	// 经流量和		
 			for(int j=0;j<t;j++){				
 				double Q;	//			
-				rainDeep=rainDeep+(double)rainseries.get(j)-(double)infiltration.get(j) * 1.4;
+				rainDeep=rainDeep+(double)rainseries.get(j)-(double)infiltration.get(j) * 2;
 				if(rainDeep<0){rainDeep=0;}
 	            if (rainDeep<XCLD){
 	                Q=0;

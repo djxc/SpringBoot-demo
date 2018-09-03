@@ -61,6 +61,9 @@ public class DataSample {
 			c = DriverManager
 			    .getConnection("jdbc:postgresql://116.196.88.174:5432/Supermap",
 			    "postgres", "123dj321");
+//			c = DriverManager
+//				    .getConnection("jdbc:postgresql://121.248.96.215:5432/testdb",
+//				    "postgres", "123321");
 //			System.out.println("connect database successfully");
 		} catch (Exception e) {
 			System.out.println("connect database failed");

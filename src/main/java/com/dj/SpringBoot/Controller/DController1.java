@@ -19,10 +19,17 @@ public class DController1 {
 		return "djxc*****Springboot";
 	}
 	
+	/**
+	 * 根据前端传递过来的子流域的id，在数据库中查找其海绵体布设前后的经流量，
+	 * 然后返回前端在echarts中表示出来
+	 * @param id
+	 * @param time
+	 * @return
+	 */
 	@RequestMapping("/dj")
-	public Map<String,List<Double>> testajax(int id) {
+	public Map<String,List<Double>> testajax(int id, int time) {
 		System.out.println(id); 
-		Map<String, List<Double>> rainflow = GetWaterInfo.getDatabyID(id);
+		Map<String, List<Double>> rainflow = GetWaterInfo.getDatabyID(id, time);
 	    return rainflow;
 	}
 	
@@ -34,8 +41,15 @@ public class DController1 {
 	 */
 	@RequestMapping("/changerainflow")
 	public String changeRainflow(int time) {			
-		System.out.println(time*2);
-		GetWaterInfo.changeRainflow(time*2);
+		System.out.println(time);
+		GetWaterInfo.changeRainflow(time);
+		return "ok";
+	}
+	
+	@RequestMapping("/changeLIDrainflow")
+	public String changeLIDRainflow(int time) {			
+		System.out.println(time);
+		GetWaterInfo.changeLIDRainflow(time);
 		return "ok";
 	}
 	
@@ -62,6 +76,7 @@ public class DController1 {
 	@RequestMapping("/calculateLIDRainflow")
 	public String calculateLIDRainflow(int time, int cxq, double yfxs) {		
 		GetWaterInfo.insertLIDData(time, cxq, yfxs);
+		System.out.println("LID***********************");
 		return "ok";
 	}
 	
